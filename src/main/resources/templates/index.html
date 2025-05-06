@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>Descargar Emails</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="flex flex-col min-h-screen bg-gray-100">
+
+<main class="flex-grow p-6">
+
+    <div class="max-w-xl mx-auto bg-white shadow-md rounded-lg p-6">
+
+        <div class="flex justify-center mb-6">
+            <img th:src="@{/banner.gif}" alt="Hedgehog Banner" class="w-full max-w-3xl rounded-lg shadow-lg">
+        </div>
+
+        <h1 class="text-xl font-bold mb-4">Exportar Emails de Gmail a Excel</h1>
+        <form id="exportForm" class="space-y-4">
+            <div>
+                <label class="block text-gray-700">Fecha desde:
+                    <input type="date" name="startDate" class="border p-2 rounded w-full" required>
+                </label>
+            </div>
+            <div>
+                <label class="block text-gray-700">Fecha hasta:
+                    <input type="date" name="endDate" class="border p-2 rounded w-full" required>
+                </label>
+            </div>
+            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                Descargar Excel
+            </button>
+        </form>
+    </div>
+</main>
+
+<footer class="max-w-xl mx-auto text-center text-gray-500 text-sm py-4 mt-4">
+    Hecho con ❤️ por
+    <a href="https://maxisandoval.dev.ar/" target="_blank" class="text-blue-600 font-semibold hover:underline">
+        Maximiliano Sandoval
+    </a> · 2025
+    <div class="mt-2 text-lg">🦔🦔🦔</div>
+</footer>
+
+<script>
+    document.getElementById("exportForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        Swal.fire({
+            title: 'Generando Excel...',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        const form = e.target;
+        const formData = new FormData(form);
+        const params = new URLSearchParams();
+        for (const pair of formData) {
+            params.append(pair[0], pair[1]);
+        }
+
+        try {
+            const response = await fetch('/export', {
+                method: 'POST',
+                body: params,
+            });
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `emails_${new Date().toISOString().replace(/[:.]/g, "-")}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+
+            Swal.close();
+        } catch (err) {
+            Swal.fire('Error', 'Ocurrió un problema al descargar el archivo.', 'error');
+        }
+    });
+</script>
+
+</body>
+</html>
