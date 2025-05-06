@@ -68,6 +68,12 @@
                 body: params,
             });
 
+            if (!response.ok) {
+                const errorText = await response.text();
+                Swal.fire('Error', errorText, 'error');
+                return;
+            }
+
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
 
